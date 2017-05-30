@@ -11,12 +11,22 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 //ping -> pong
 app.get('/ping',function(req, res){
+    res.set('Content-Type', 'text/plain; charset=utf-8');
     res.end('Pong');
 });
 
 app.get('/portal',function(req, res){
-    res.redirect('https://www.baidu.com');
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.end('恭喜,您已经成功接入互联网~');
 });
+
+
+app.get('/gw_message',function(req, res){
+    var message = 'nothing';
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.end(req.query.message);
+});
+
 
 app.get('/login',function(req, res){
     var gw_address = req.query.gw_address;
@@ -24,7 +34,8 @@ app.get('/login',function(req, res){
     var gw_id = req.query.gw_id;
     var mac = req.query.mac;
     var url = req.query.url;
-
+    //console.log(req.path , req.query);
+    res.set('Content-Type', 'text/plain; charset=utf-8');
     if(gw_address && gw_port){
         var token = uuidV4();
         if(!fs.existsSync('/tmp/wifidog-node/')){
@@ -33,6 +44,7 @@ app.get('/login',function(req, res){
         var path = '/tmp/wifidog-node/' + token;
         var now_time = new Date().valueOf();
         fs.writeFileSync(path, now_time,{ flag:'w'} );
+        //console.log('redirect to ' + 'http://' + gw_address + ':' + gw_port + '/wifidog/auth?token=' + token);
         res.redirect('http://' + gw_address + ':' + gw_port + '/wifidog/auth?token=' + token);
     } else {
         res.status(404).end();
@@ -48,13 +60,15 @@ app.get('/auth',function(req, res){
     var incoming = req.query.incoming;
     var outgoing = req.query.outgoing;
     var gw_id = req.query.gw_id;
+    //console.log(req.path , req.query);
+    res.set('Content-Type', 'text/plain; charset=utf-8');
     if(token){
         var path = '/tmp/wifidog-node/' + token;
         var is_exist = fs.existsSync(path);
         if(is_exist){ //已存在
             fs.readFile(path, function (err, data) {
                 if (err){
-                    console.error(err);
+                    //console.error(err);
                     res.end('Auth: 0');
                     return;
                 }
@@ -63,16 +77,20 @@ app.get('/auth',function(req, res){
                 if(!data || now_time-last_time > 86400000){
                     fs.unlinkSync(path);
                     res.end('Auth: 0'); //已过期
+                    //console.log('Auth: 0');
                     return;
-                }else{
+                } else {
+                    //console.log('Auth: 1');
                     res.end('Auth: 1');
                 }
             });
         } else {
+            //console.log('Auth: 0');
             res.end('Auth: 0');
         }
 
     } else {
+        //console.log('Auth: 0');
         res.end('Auth: 0');
     }
 
