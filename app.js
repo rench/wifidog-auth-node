@@ -5,29 +5,22 @@ var uuidV4 = require('uuid/v4');
 
 var app = express();
 
-
 app.use(bodyParser.json()); 
 app.use(bodyParser.urlencoded({ extended: true })); 
 
-//ping -> pong
+// PING PONG
+// gets called every minute
+// this checks if the authentication server is active
 app.get('/ping',function(req, res){
     res.set('Content-Type', 'text/plain; charset=utf-8');
     res.end('Pong');
 });
 
-app.get('/portal',function(req, res){
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.end('恭喜,您已经成功接入互联网~');
-});
-
-
-app.get('/gw_message',function(req, res){
-    var message = 'nothing';
-    res.set('Content-Type', 'text/plain; charset=utf-8');
-    res.end(req.query.message);
-});
-
-
+// LOGIN
+// first stage of authentication
+// here is where we generate the token
+// if we want to run additional script on javascript(frontent) like 
+// getting the users browser, operating system, version and etc., we can add it here.
 app.get('/login',function(req, res){
     var gw_address = req.query.gw_address;
     var gw_port = req.query.gw_port;
@@ -51,7 +44,10 @@ app.get('/login',function(req, res){
     }
 });
 
-
+// AUTHENTICATION
+// second stage of authentication
+// here is where we validate the token
+// you can also add additional validation here like mac address validation, ip address validation and gateway id validation.
 app.get('/auth',function(req, res){
     var stage = req.query.stage;
     var ip = req.query.ip;
@@ -96,5 +92,24 @@ app.get('/auth',function(req, res){
 
 });
 
-app.listen(3000);
-console.log('app start at 3000');
+
+// PORTAL
+// on AUTHENTICATION successful (user granted)
+app.get('/portal',function(req, res){
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.end('恭喜,您已经成功接入互联网~');
+});
+
+// GATEWAY MESSAGE
+// on AUTHENTICATION denied (user not granted)
+app.get('/gw_message.php',function(req, res){
+    var message = 'nothing';
+    res.set('Content-Type', 'text/plain; charset=utf-8');
+    res.end(req.query.message);
+});
+
+// PORT
+// we set the port to port 80 so that we will be able to use the ip address or hostname on wifidog.conf
+app.listen(80);
+console.log('app start at 30');
+
